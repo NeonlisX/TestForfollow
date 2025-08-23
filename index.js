@@ -1,0 +1,55 @@
+const express = require('express');
+const axios = require('axios');
+const app = express();
+
+app.get('/', (req, res) => {
+  res.send('Proxy está funcionando - Verificação de follow atualizada.');
+});
+
+app.get('/check-follow', async (req, res) => {
+  const { followerId, followeeId } = req.query;
+
+  if (!followerId || !followeeId) {
+    return res.status(400).json({ error: 'Faltando parâmetros followerId ou followeeId.' });
+  }
+
+  const robloxApiUrl = `https://friends.roblox.com/v1/users/${followerId}/followings?sortOrder=Asc&limit=100`;
+
+  console.log('Tentando acessar a URL:', robloxApiUrl);
+
+  try {
+    const response = await axios.get(robloxApiUrl, {
+      headers: { 
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0'
+      }
+    });
+
+    const isFollowing = response.data.data.some(user => user.id == followeeId);
+
+    res.json({ isFollowing });
+
+  } catch (error) {
+    console.error('ERRO DETALHADO AO CHAMAR A API DO ROBLOX:');
+    if (error.response) {
+      console.error('Status:', error.response.status);
+      console.error('Data:', error.response.data);
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      console.error('Mensagem:', error.message);
+      return res.status(500).json({ error: 'Falha ao buscar status da API do Roblox.' });
+    }
+  }
+});
+
+process.on('uncaughtException', (error, origin) => {
+  console.error('--- ERRO NÃO TRATADO CAPTURADO ---');
+  console.error('Origem do erro:', origin);
+  console.error(error);
+  console.error('--- FIM DO ERRO ---');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor iniciado com sucesso e rodando na porta ${PORT}`);
+});
