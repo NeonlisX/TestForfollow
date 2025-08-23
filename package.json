@@ -19,7 +19,7 @@ app.get('/check-follow', async (req, res) => {
   console.log('Tentando acessar a URL:', robloxApiUrl);
 
   try {
-    const response = await axios.get(robloxApiUrl, {
+    const response = await axios.get(roloxApiUrl, {
       headers: { 
         'Accept': 'application/json',
         'User-Agent': 'Mozilla/5.0'
@@ -44,6 +44,24 @@ app.get('/check-follow', async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log(`Proxy para Roblox está rodando.`);
+
+// --- INÍCIO DAS MUDANÇAS ---
+
+// Middleware para capturar erros inesperados que possam travar o app
+process.on('uncaughtException', (error, origin) => {
+  console.error('--- ERRO NÃO TRATADO CAPTURADO ---');
+  console.error('Origem do erro:', origin);
+  console.error(error);
+  console.error('--- FIM DO ERRO ---');
 });
+
+
+// Define a porta usando a variável de ambiente do Render, ou 3000 como padrão
+const PORT = process.env.PORT || 3000;
+
+// Inicia o servidor com a porta correta e um log mais detalhado
+app.listen(PORT, () => {
+  console.log(`Servidor iniciado com sucesso e rodando na porta ${PORT}`);
+});
+
+// --- FIM DAS MUDANÇAS ---
